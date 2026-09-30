@@ -18,6 +18,7 @@ export default function Skills() {
   // Selected category's skills flip in, one by one, below the sphere.
   useGSAP(
     () => {
+      if (!list.current?.children.length) return; // nothing selected ("All")
       gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {
         gsap.from("li", {
           opacity: 0,

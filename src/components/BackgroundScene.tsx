@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { AdditiveBlending, NormalBlending, type Group, type Mesh } from "three";
 import { useTheme } from "./useTheme";
@@ -77,11 +77,27 @@ function Shape({ kind, side, y, z, scale, speed, color }: (typeof shapes)[number
 
 function World({ primary, secondary, additive }: (typeof palette)["dark"]) {
   const group = useRef<Group>(null);
-  const stars = useMemo(() => starField(1400), []);
+  const stars = useMemo(() => starField(window.innerWidth < 768 ? 600 : 1400), []);
+  const maxScroll = useRef(0);
+
+  // Cache the scrollable height (reading it every frame forces a layout recalculation).
+  useEffect(() => {
+    const measure = () => {
+      maxScroll.current = document.documentElement.scrollHeight - window.innerHeight;
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(document.body);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
 
   useFrame((state) => {
     // Camera follows page scroll, so the 3D world scrolls with slight parallax.
-    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const max = maxScroll.current;
     const target = max > 0 ? -(window.scrollY / max) * RANGE : 0;
     state.camera.position.y += (target - state.camera.position.y) * 0.08;
 
@@ -121,7 +137,7 @@ export default function BackgroundScene() {
   return (
     <Canvas
       camera={{ position: [0, 0, CAMERA_Z], fov: FOV }}
-      dpr={[1, 1.5]}
+      dpr={window.innerWidth < 768 ? [1, 1.25] : [1, 1.5]}
       frameloop={reducedMotion ? "demand" : "always"}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
     >

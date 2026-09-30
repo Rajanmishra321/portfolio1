@@ -119,6 +119,22 @@ h1 .text-extrude {
   text-shadow: var(--extrude);
 }
 
+/* Lightweight CSS star field, shown before (or instead of) the WebGL background */
+.stars-fallback {
+  background-image:
+    radial-gradient(1.2px 1.2px at 12% 18%, var(--accent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 68% 32%, var(--accent) 50%, transparent 51%),
+    radial-gradient(1.4px 1.4px at 38% 72%, var(--accent-2) 50%, transparent 51%),
+    radial-gradient(1px 1px at 86% 84%, var(--accent) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 52% 46%, var(--accent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 24% 90%, var(--accent-2) 50%, transparent 51%);
+  background-size: 260px 260px;
+  opacity: 0.55;
+}
+.stars-fallback[data-hidden] {
+  opacity: 0;
+}
+
 /* ---------- 3D building blocks ---------- */
 
 /* Layered depth inside tilt cards: higher = closer to the viewer */

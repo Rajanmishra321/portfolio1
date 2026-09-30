@@ -79,7 +79,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Background />
         {children}
         <Cursor />
-        <Analytics />
+        {/* Vercel sets VERCEL=1; elsewhere the analytics script does not exist (404) */}
+        {process.env.VERCEL && <Analytics />}
       </body>
     </html>
   );

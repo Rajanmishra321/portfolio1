@@ -192,8 +192,13 @@ export default function Carousel3D({
                   onClick={() => goTo(i)}
                   aria-label={`Show ${label}`}
                   aria-current={i === active ? "true" : undefined}
-                  className={`h-2 rounded-full transition-all duration-500 ${i === active ? "w-8 bg-accent" : "w-2 bg-border hover:bg-muted"}`}
-                />
+                  className="group grid h-6 min-w-6 place-items-center"
+                >
+                  {/* Small visible dot inside a 24px tap target */}
+                  <span
+                    className={`h-2 rounded-full transition-all duration-500 ${i === active ? "w-8 bg-accent" : "w-2 bg-border group-hover:bg-muted"}`}
+                  />
+                </button>
               ))}
             </div>
             <button

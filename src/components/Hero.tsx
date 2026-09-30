@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { highlights, profile } from "@/data/portfolio";
+import { useThreeReady } from "@/lib/three-gate";
+import GlobePlaceholder from "./GlobePlaceholder";
 import { ArrowUpRightIcon, DownloadIcon, GitHubIcon, LinkedInIcon } from "./Icons";
 
 const Scene = dynamic(() => import("./Scene"), { ssr: false });
@@ -13,6 +15,8 @@ export default function Hero() {
   const root = useRef<HTMLElement>(null);
   const content = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(true);
+  const threeReady = useThreeReady();
+  const [sceneLive, setSceneLive] = useState(false);
 
   useEffect(() => {
     // Stop rendering the 3D scene when the hero is scrolled out of view.
@@ -24,7 +28,9 @@ export default function Hero() {
   useGSAP(
     () => {
       gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {
-        gsap.from("[data-hero]", {
+        // The headline is the page's largest element (LCP), so it is painted in place and never
+        // animated on load — resizing it would push LCP back. Everything else flips in around it.
+        gsap.from("[data-hero]:not(h1)", {
           y: 40,
           rotationX: -50,
           transformPerspective: 900,
@@ -65,7 +71,8 @@ export default function Hero() {
     <section ref={root} id="home" className="relative flex min-h-[85svh] items-center overflow-hidden pt-24 pb-12">
       <div className="bg-grid pointer-events-none absolute inset-0 -z-20" />
       <div data-hero-scene className="absolute inset-0 -z-10 opacity-45 md:opacity-100">
-        <Scene active={inView} />
+        <GlobePlaceholder hidden={sceneLive} />
+        {threeReady && <Scene active={inView} onReady={() => setSceneLive(true)} />}
       </div>
 
       <div className="mx-auto w-full max-w-6xl px-6">

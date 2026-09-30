@@ -38,6 +38,12 @@ export default function SkillSphere({ skills, highlight }: { skills: Skill[]; hi
     let visible = true;
     let frame = 0;
     let last = performance.now();
+    // Cached so the animation loop never reads layout (avoids forced reflows).
+    let radius = 0;
+    const measure = () => (radius = Math.min(el.clientWidth * 0.4, 250));
+    measure();
+    const resize = new ResizeObserver(measure);
+    resize.observe(el);
 
     const render = (now: number) => {
       const dt = Math.min((now - last) / 16.67, 3);
@@ -48,7 +54,6 @@ export default function SkillSphere({ skills, highlight }: { skills: Skill[]; hi
       rot.x += vel.x * dt;
       rot.y += vel.y * dt;
 
-      const radius = Math.min(el.clientWidth * 0.4, 250);
       const [sx, cx, sy, cy] = [Math.sin(rot.x), Math.cos(rot.x), Math.sin(rot.y), Math.cos(rot.y)];
       const hl = highlightRef.current;
 
@@ -107,6 +112,7 @@ export default function SkillSphere({ skills, highlight }: { skills: Skill[]; hi
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
+      resize.disconnect();
       el.removeEventListener("pointermove", onMove);
       el.removeEventListener("pointerdown", onDown);
       el.removeEventListener("pointerup", onUp);

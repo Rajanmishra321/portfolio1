@@ -27,7 +27,8 @@ function Globe({ primary, secondary, additive }: (typeof palette)["dark"]) {
   const group = useRef<Group>(null);
   const ring = useRef<Group>(null);
   const ring2 = useRef<Group>(null);
-  const positions = useMemo(() => fibonacciSphere(2400, 1.9), []);
+  // Fewer particles on phones.
+  const positions = useMemo(() => fibonacciSphere(window.innerWidth < 768 ? 1200 : 2400, 1.9), []);
   const { viewport } = useThree();
 
   // Sit on the right on wide screens, centered behind the text on mobile.
@@ -92,7 +93,7 @@ function Globe({ primary, secondary, additive }: (typeof palette)["dark"]) {
   );
 }
 
-export default function Scene({ active }: { active: boolean }) {
+export default function Scene({ active, onReady }: { active: boolean; onReady?: () => void }) {
   const { theme } = useTheme();
   // This component is client-only (loaded with ssr: false), so matchMedia is safe here.
   const reducedMotion = useMemo(() => matchMedia("(prefers-reduced-motion: reduce)").matches, []);
@@ -101,8 +102,9 @@ export default function Scene({ active }: { active: boolean }) {
   return (
     <Canvas
       camera={{ position: [0, 0, 7], fov: 45 }}
-      dpr={[1, 1.75]}
+      dpr={window.innerWidth < 768 ? [1, 1.25] : [1, 1.75]}
       frameloop={frameloop}
+      onCreated={() => onReady?.()}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       aria-hidden
     >
