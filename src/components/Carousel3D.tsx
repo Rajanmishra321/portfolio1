@@ -11,13 +11,30 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const STEP = 38; // degrees between cards on the ring
 const RADIUS = 720; // ring radius in px
+const STAGE_HEIGHT = 600; // natural stage height in px, before scaling to fit the screen
+const MIN_SCALE = 0.55;
+const NAV_HEIGHT = 72; // fixed navbar overlapping the top of the pinned section
+const CONTROLS_HEIGHT = 68; // arrows + dots row under the ring
 
 // Cover-flow style 3D ring. On desktop the section pins and scrolling rotates the ring,
 // snapping to each card. On small screens / reduced motion it falls back to a plain grid.
-export default function Carousel3D({ items, labels, header, footer }: { items: ReactNode[]; labels: string[]; header: ReactNode; footer: ReactNode }) {
+export default function Carousel3D({
+  items,
+  labels,
+  header,
+  footer,
+}: {
+  items: ReactNode[];
+  labels: string[];
+  header: ReactNode;
+  footer: ReactNode;
+}) {
   const section = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
+  const scaler = useRef<HTMLDivElement>(null);
   const ring = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
   const trigger = useRef<ScrollTrigger | null>(null);
   const activeRef = useRef(0);
   const [active, setActive] = useState(0);
@@ -26,60 +43,99 @@ export default function Carousel3D({ items, labels, header, footer }: { items: R
 
   useGSAP(
     () => {
-      gsap.matchMedia().add("(min-width: 1024px) and (prefers-reduced-motion: no-preference)", () => {
-        const cards = gsap.utils.toArray<HTMLElement>("[data-card]", ring.current);
-        stage.current!.classList.add("is-3d");
-        setIs3d(true);
+      // Screens shorter than 600px get the plain grid; everything else gets the ring, scaled to fit.
+      gsap
+        .matchMedia()
+        .add(
+          "(min-width: 1024px) and (min-height: 600px) and (prefers-reduced-motion: no-preference)",
+          () => {
+            const cards = gsap.utils.toArray<HTMLElement>(
+              "[data-card]",
+              ring.current,
+            );
+            stage.current!.classList.add("is-3d");
+            setIs3d(true);
 
-        cards.forEach((card, i) => {
-          card.style.transform = `rotateY(${i * STEP}deg) translateZ(${RADIUS}px)`;
-        });
+            // Shrink the whole ring so heading + ring + controls fit in the pinned viewport.
+            // Runs before every ScrollTrigger refresh (including window resizes).
+            const fit = () => {
+              const others =
+                NAV_HEIGHT +
+                CONTROLS_HEIGHT +
+                (headerRef.current?.offsetHeight ?? 0) +
+                (footerRef.current?.offsetHeight ?? 0) +
+                48;
+              const scale = gsap.utils.clamp(
+                MIN_SCALE,
+                1,
+                (window.innerHeight - others) / STAGE_HEIGHT,
+              );
+              stage.current!.style.height = `${STAGE_HEIGHT * scale}px`;
+              scaler.current!.style.transform = `scale(${scale})`;
+            };
+            fit();
+            ScrollTrigger.addEventListener("refreshInit", fit);
 
-        // Fade / disable cards as they rotate away from the front.
-        const shade = (rotation: number) => {
-          cards.forEach((card, i) => {
-            const angle = Math.abs(i * STEP + rotation);
-            card.style.opacity = String(gsap.utils.clamp(0.15, 1, 1 - angle / 110));
-            card.style.pointerEvents = angle < STEP / 2 ? "auto" : "none";
-          });
-          const index = Math.round(-rotation / STEP);
-          if (index !== activeRef.current) {
-            activeRef.current = index;
-            setActive(index);
-          }
-        };
+            cards.forEach((card, i) => {
+              card.style.transform = `rotateY(${i * STEP}deg) translateZ(${RADIUS}px)`;
+            });
 
-        gsap.set(ring.current, { z: -RADIUS, rotationY: 0 });
-        shade(0);
+            // Fade / disable cards as they rotate away from the front.
+            const shade = (rotation: number) => {
+              cards.forEach((card, i) => {
+                const angle = Math.abs(i * STEP + rotation);
+                card.style.opacity = String(
+                  gsap.utils.clamp(0.15, 1, 1 - angle / 110),
+                );
+                card.style.pointerEvents = angle < STEP / 2 ? "auto" : "none";
+              });
+              const index = Math.round(-rotation / STEP);
+              if (index !== activeRef.current) {
+                activeRef.current = index;
+                setActive(index);
+              }
+            };
 
-        const tween = gsap.to(ring.current, {
-          rotationY: -(n - 1) * STEP,
-          ease: "none",
-          onUpdate: () => shade(gsap.getProperty(ring.current, "rotationY") as number),
-          scrollTrigger: {
-            trigger: section.current,
-            pin: true,
-            start: "top top",
-            end: `+=${(n - 1) * 75}%`,
-            scrub: 1,
-            snap: { snapTo: 1 / (n - 1), duration: { min: 0.3, max: 0.8 }, ease: "power2.inOut" },
+            gsap.set(ring.current, { z: -RADIUS, rotationY: 0 });
+            shade(0);
+
+            const tween = gsap.to(ring.current, {
+              rotationY: -(n - 1) * STEP,
+              ease: "none",
+              onUpdate: () =>
+                shade(gsap.getProperty(ring.current, "rotationY") as number),
+              scrollTrigger: {
+                trigger: section.current,
+                pin: true,
+                start: "top top",
+                end: `+=${(n - 1) * 75}%`,
+                scrub: 1,
+                snap: {
+                  snapTo: 1 / (n - 1),
+                  duration: { min: 0.3, max: 0.8 },
+                  ease: "power2.inOut",
+                },
+              },
+            });
+            trigger.current = tween.scrollTrigger ?? null;
+
+            return () => {
+              ScrollTrigger.removeEventListener("refreshInit", fit);
+              stage.current?.classList.remove("is-3d");
+              if (stage.current) stage.current.style.height = "";
+              if (scaler.current) scaler.current.style.transform = "";
+              cards.forEach((card) => {
+                card.style.transform = "";
+                card.style.opacity = "";
+                card.style.pointerEvents = "";
+              });
+              trigger.current = null;
+              setIs3d(false);
+            };
           },
-        });
-        trigger.current = tween.scrollTrigger ?? null;
-
-        return () => {
-          stage.current?.classList.remove("is-3d");
-          cards.forEach((card) => {
-            card.style.transform = "";
-            card.style.opacity = "";
-            card.style.pointerEvents = "";
-          });
-          trigger.current = null;
-          setIs3d(false);
-        };
-      });
+        );
     },
-    { scope: section }
+    { scope: section },
   );
 
   const goTo = (i: number) => {
@@ -93,17 +149,27 @@ export default function Carousel3D({ items, labels, header, footer }: { items: R
   };
 
   return (
-    <section ref={section} id="projects" className="relative flex min-h-svh scroll-mt-20 flex-col justify-center overflow-hidden px-6 py-10 sm:py-12">
+    <section
+      ref={section}
+      id="projects"
+      className="relative flex min-h-svh scroll-mt-20 flex-col justify-center overflow-hidden px-6 py-10 sm:py-12"
+    >
       <div className="mx-auto w-full max-w-6xl">
-        {header}
+        <div ref={headerRef}>{header}</div>
         <div ref={stage} data-reveal className="carousel-stage">
-          <div ref={ring} className="carousel-ring">
-            {items.map((item, i) => (
-              // Keyboard users: focusing a card rotates it to the front.
-              <div key={labels[i]} data-card onFocusCapture={() => is3d && goTo(i)}>
-                {item}
-              </div>
-            ))}
+          <div ref={scaler} className="carousel-scaler">
+            <div ref={ring} className="carousel-ring">
+              {items.map((item, i) => (
+                // Keyboard users: focusing a card rotates it to the front.
+                <div
+                  key={labels[i]}
+                  data-card
+                  onFocusCapture={() => is3d && goTo(i)}
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -141,7 +207,7 @@ export default function Carousel3D({ items, labels, header, footer }: { items: R
             </button>
           </div>
         )}
-        {footer}
+        <div ref={footerRef}>{footer}</div>
       </div>
     </section>
   );

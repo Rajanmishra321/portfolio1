@@ -210,8 +210,16 @@ h1 .text-extrude {
 }
 .carousel-stage.is-3d {
   position: relative;
-  height: 600px;
+  height: 600px; /* overridden inline by Carousel3D to fit the screen */
   perspective: 1800px;
+}
+/* Scaled as a whole (inline transform) so the ring shrinks on short screens */
+.is-3d .carousel-scaler {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 600px;
+  transform-origin: 50% 0;
+  transform-style: preserve-3d;
 }
 .is-3d .carousel-ring {
   display: block;
