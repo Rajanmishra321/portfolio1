@@ -1,26 +1,325 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+:root,
+:root[data-theme="dark"] {
+  --background: #05070d;
+  --foreground: #e6edf7;
+  --muted: #8b98ad;
+  --accent: #22d3ee;
+  --accent-2: #3b82f6;
+  --accent-fg: #03121a;
+  --border: rgb(255 255 255 / 0.08);
+  /* Mostly opaque so the 3D background doesn't show through card text */
+  --surface: rgb(12 16 26 / 0.88);
+  --surface-hover: rgb(18 24 38 / 0.94);
+  /* Cyan glow */
+  --glow-rgba: rgb(34 211 238 / 0.55);
+  --glow-strong: 0 0 10px rgb(34 211 238 / 0.55), 0 0 28px rgb(34 211 238 / 0.35), 0 0 60px rgb(59 130 246 / 0.3);
+  --glow-soft: 0 0 8px rgb(34 211 238 / 0.6), 0 0 22px rgb(34 211 238 / 0.3);
+  --glow-faint: 0 0 12px rgb(34 211 238 / 0.22);
+  --glow-drop: drop-shadow(0 0 10px rgb(34 211 238 / 0.55)) drop-shadow(0 0 28px rgb(59 130 246 / 0.35));
+  --glow-box: 0 0 20px rgb(34 211 238 / 0.5), 0 0 50px rgb(59 130 246 / 0.25);
+  --extrude: 1px 1px 0 #0e7490, 2px 2px 0 #0c6479, 3px 3px 0 #0a5264, 4px 4px 0 #083f4e, 5px 5px 0 #062d38,
+    6px 6px 0 #041c24, 10px 14px 24px rgb(0 0 0 / 0.6), 0 0 40px rgb(34 211 238 / 0.35);
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --background: #f7f9fc;
+  --foreground: #0b1220;
+  --muted: #4b5870;
+  --accent: #0369a1;
+  --accent-2: #2563eb;
+  --accent-fg: #ffffff;
+  --border: rgb(15 23 42 / 0.1);
+  --surface: rgb(255 255 255 / 0.88);
+  --surface-hover: rgb(255 255 255 / 1);
+  /* Softer glow so text stays crisp on a light background */
+  --glow-rgba: rgb(2 132 199 / 0.35);
+  --glow-strong: 0 0 18px rgb(2 132 199 / 0.3);
+  --glow-soft: 0 0 12px rgb(2 132 199 / 0.3);
+  --glow-faint: none;
+  --glow-drop: drop-shadow(0 0 12px rgb(2 132 199 / 0.35));
+  --glow-box: 0 6px 24px rgb(2 132 199 / 0.35);
+  --extrude: 1px 1px 0 #bae6fd, 2px 2px 0 #7dd3fc, 3px 3px 0 #38bdf8, 4px 4px 0 #0ea5e9, 8px 12px 20px rgb(2 132 199 / 0.25);
+  color-scheme: light;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-fg: var(--accent-fg);
+  --color-border: var(--border);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Lenis smooth scrolling */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ---------- Glow ---------- */
+body {
+  text-shadow: var(--glow-faint);
+}
+h1,
+h2 {
+  text-shadow: var(--glow-strong);
+}
+h3 {
+  text-shadow: var(--glow-soft);
+}
+/* Grey text blurs under a glow, so keep it crisp */
+.text-muted,
+h1 .text-muted,
+h2 .text-muted,
+h3 .text-muted {
+  text-shadow: none;
+}
+.text-accent,
+a:hover {
+  text-shadow: var(--glow-soft);
+}
+.bg-accent {
+  box-shadow: var(--glow-box);
+  text-shadow: none;
+}
+pre,
+code,
+input,
+textarea,
+button {
+  text-shadow: none;
+}
+.glow-frame {
+  box-shadow: var(--glow-box);
+}
+/* 3D extruded headline */
+h1 .text-extrude {
+  text-shadow: var(--extrude);
+}
+
+/* ---------- 3D building blocks ---------- */
+
+/* Layered depth inside tilt cards: higher = closer to the viewer */
+.tilt-card > [data-depth="2"] {
+  transform: translateZ(36px);
+}
+.tilt-card > [data-depth="3"] {
+  transform: translateZ(60px);
+}
+
+/* Animated holographic border (rotating conic gradient) */
+@property --holo-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.holo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--holo-angle),
+    transparent 0deg 220deg,
+    var(--accent) 270deg,
+    var(--accent-2) 310deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: holo-spin 7s linear infinite;
+}
+@keyframes holo-spin {
+  to {
+    --holo-angle: 360deg;
+  }
+}
+
+/* Orbit rings around the profile photo */
+.orbit {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  box-shadow: 0 0 18px var(--glow-rgba);
+  transform: rotateX(72deg) rotateZ(0deg);
+  animation: orbit-spin 14s linear infinite;
+}
+.orbit::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--accent);
+  box-shadow: var(--glow-box);
+}
+.orbit-2 {
+  inset: 18px;
+  border-color: color-mix(in srgb, var(--accent-2) 45%, transparent);
+  transform: rotateY(70deg) rotateZ(0deg);
+  animation: orbit-spin-2 10s linear infinite reverse;
+}
+@keyframes orbit-spin {
+  to {
+    transform: rotateX(72deg) rotateZ(360deg);
+  }
+}
+@keyframes orbit-spin-2 {
+  to {
+    transform: rotateY(70deg) rotateZ(360deg);
+  }
+}
+
+/* Project carousel: plain grid by default, a 3D ring when .is-3d is set (desktop) */
+.carousel-ring {
+  display: grid;
+  gap: 1.5rem;
+}
+@media (min-width: 768px) {
+  .carousel-ring {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.carousel-stage.is-3d {
+  position: relative;
+  height: 600px;
+  perspective: 1800px;
+}
+.is-3d .carousel-ring {
+  display: block;
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.is-3d [data-card] {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 460px;
+  margin-left: -230px;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transition: opacity 0.2s linear;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Blog post typography, mapped to the site's theme colors */
+.prose {
+  --tw-prose-body: var(--muted);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-lead: var(--muted);
+  --tw-prose-links: var(--accent);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-counters: var(--muted);
+  --tw-prose-bullets: var(--accent);
+  --tw-prose-hr: var(--border);
+  --tw-prose-quotes: var(--foreground);
+  --tw-prose-quote-borders: var(--accent);
+  --tw-prose-code: var(--foreground);
+  --tw-prose-pre-code: #e6edf7;
+  --tw-prose-pre-bg: #0b1220;
+  --tw-prose-th-borders: var(--border);
+  --tw-prose-td-borders: var(--border);
+}
+.prose pre {
+  border: 1px solid var(--border);
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* text-shadow would paint over clipped gradient text, so glow with a filter instead */
+  text-shadow: none;
+  filter: var(--glow-drop);
+}
+
+/* Faint grid behind the page */
+.bg-grid {
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse at 50% 0%, black 20%, transparent 70%);
+}
+
+/* Interactive card: GSAP drives the 3D tilt (see TiltCard); CSS adds the spotlight and glow.
+   Children sit slightly forward in Z so content "pops" off the card when tilted. */
+.tilt-card {
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.tilt-card > * {
+  transform: translateZ(14px);
+}
+.tilt-card:hover {
+  box-shadow: 0 0 40px -10px var(--glow-rgba), 0 20px 40px -20px rgb(0 0 0 / 0.5);
+}
+.tilt-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(
+    400px circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--accent) 14%, transparent),
+    transparent 60%
+  );
+}
+.tilt-card:hover::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tilt-card,
+  .tilt-card > * {
+    transform: none !important;
+  }
+  .holo::after,
+  .orbit {
+    animation: none;
+  }
 }
