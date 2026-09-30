@@ -40,7 +40,8 @@ export default function SkillSphere({ skills, highlight }: { skills: Skill[]; hi
     let last = performance.now();
     // Cached so the animation loop never reads layout (avoids forced reflows).
     let radius = 0;
-    const measure = () => (radius = Math.min(el.clientWidth * 0.4, 250));
+    // Narrow screens get a tighter sphere so long tags don't run off the edge.
+    const measure = () => (radius = Math.min(el.clientWidth * (el.clientWidth < 500 ? 0.3 : 0.4), 250));
     measure();
     const resize = new ResizeObserver(measure);
     resize.observe(el);
@@ -140,7 +141,7 @@ export default function SkillSphere({ skills, highlight }: { skills: Skill[]; hi
             className="absolute top-1/2 left-1/2 will-change-transform"
           >
             <span
-              className={`block rounded-full border px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors duration-300 ${
+              className={`block rounded-full border px-2.5 py-1 text-xs font-medium whitespace-nowrap sm:px-3 sm:py-1.5 sm:text-sm transition-colors duration-300 ${
                 on
                   ? "border-accent bg-accent text-accent-fg shadow-[0_0_24px_var(--glow-rgba)]"
                   : "border-border bg-surface text-foreground"

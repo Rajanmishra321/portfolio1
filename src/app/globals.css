@@ -72,6 +72,12 @@ html.lenis body {
   overflow: hidden;
 }
 
+/* Nothing may widen the page sideways (mobile browsers otherwise stretch fixed elements like the navbar) */
+html,
+body {
+  overflow-x: clip;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -310,7 +316,6 @@ h1 .text-extrude {
    Children sit slightly forward in Z so content "pops" off the card when tilted. */
 .tilt-card {
   transform-style: preserve-3d;
-  will-change: transform;
   transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
 }
 .tilt-card > * {
@@ -335,6 +340,25 @@ h1 .text-extrude {
 }
 .tilt-card:hover::before {
   opacity: 1;
+}
+
+/* Only mouse devices tilt cards, so only they need a GPU layer per card */
+@media (pointer: fine) {
+  .tilt-card {
+    will-change: transform;
+  }
+}
+
+/* Touch screens: keep the look, drop the continuous repaint work */
+@media (hover: none) {
+  .holo::after {
+    animation: none;
+  }
+}
+@media (max-width: 767px) {
+  body {
+    text-shadow: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
