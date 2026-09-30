@@ -48,6 +48,8 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image", title, description: profile.tagline },
   robots: { index: true, follow: true },
+  // Google Search Console ownership check
+  verification: { google: "7NJzR_daLGTSrieSXoYpAH0dTmV_b0EdoqRBjsvMnQU" },
 };
 
 export const viewport: Viewport = {
