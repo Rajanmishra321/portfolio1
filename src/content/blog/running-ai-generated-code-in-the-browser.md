@@ -6,7 +6,7 @@ tags: AI, Gemini, WebContainer, MERN
 draft: false
 ---
 
-Generating code with an AI model is only half the experience. The magic moment is when that code **runs immediately** — no copying files, no local setup. That's what I set out to build in my AI Software Engineer project.
+Generating code with an AI model is only half the experience. The magic moment is when that code **runs immediately** — no copying files, no local setup. That's what I set out to build with [SOEN](https://soen-rajan.web.app/), my AI Software Engineer project.
 
 ## The stack
 

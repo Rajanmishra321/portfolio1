@@ -127,7 +127,7 @@ export const featuredProject: Project = {
 
 export const projects: Project[] = [
   {
-    title: "AI Software Engineer",
+    title: "SOEN — AI Software Engineer",
     tag: "AI · Developer tool",
     description:
       "An AI-powered developer platform that assists with software development tasks, combining Google Gemini with an in-browser development environment to generate and run code.",
