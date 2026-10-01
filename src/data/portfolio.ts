@@ -132,6 +132,7 @@ export const projects: Project[] = [
     description:
       "An AI-powered developer platform that assists with software development tasks, combining Google Gemini with an in-browser development environment to generate and run code.",
     tech: ["React.js", "Node.js", "Express.js", "MongoDB", "Gemini API", "Redis", "JWT", "WebContainer"],
+    live: "https://soen-rajan.web.app/",
     code: "https://github.com/Rajanmishra321/Software_Engineer_ai",
     image: "/projects/ai-software-engineer.png",
   },

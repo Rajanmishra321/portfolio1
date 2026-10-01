@@ -9,7 +9,7 @@
 - [x] **Add a profile photo** (done)
 
 ## After launch
-- [ ] **AI Software Engineer live link**: deploy the project, then add its URL as `live` in `src/data/portfolio.ts` (or send it to Claude). A short demo video is optional.
+- [x] **AI Software Engineer live link** (done: https://soen-rajan.web.app/): deploy the project, then add its URL as `live` in `src/data/portfolio.ts` (or send it to Claude). A short demo video is optional.
 - [ ] **Add numbers to case-study results** when you can find them (users, partners, students, time saved). Edit `results` in `src/data/portfolio.ts`.
 - [ ] **GitHub cleanup**: pin your best repos, write READMEs with screenshots and live links, and add a profile README.
 - [ ] **LinkedIn**: add the portfolio link to your headline or Featured section and share a launch post.
